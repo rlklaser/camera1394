@@ -16,20 +16,27 @@ set(CAMERA1394_SOURCES
 #  set(DC1394 dc1394)
 #endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
+add_library(camera1394 ${CAMERA1394_SOURCES})
+target_link_libraries(camera1394
+  ${catkin_LIBRARIES} ${DC1394_LIBRARY})
+install(TARGETS camera1394
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+        
 # build and install the node
-add_executable(camera1394_node camera1394_node.cpp ${CAMERA1394_SOURCES})
+add_executable(camera1394_node camera1394_node.cpp camera1394.cpp)
 add_dependencies(camera1394_node ${camera1394_EXPORTED_TARGETS})
 target_link_libraries(camera1394_node
-  ${catkin_LIBRARIES} ${DC1394_LIBRARY})
+  ${catkin_LIBRARIES} ${DC1394_LIBRARY} camera1394)
 install(TARGETS camera1394_node
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # build and install the nodelet
-add_library(camera1394_nodelet nodelet.cpp ${CAMERA1394_SOURCES})
+add_library(camera1394_nodelet nodelet.cpp camera1394.cpp)
 add_dependencies(camera1394_nodelet ${camera1394_EXPORTED_TARGETS})
 target_link_libraries(camera1394_nodelet
-  ${catkin_LIBRARIES} ${DC1394_LIBRARY})
+  ${catkin_LIBRARIES} ${DC1394_LIBRARY} camera1394)
 install(TARGETS camera1394_nodelet
         RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+  

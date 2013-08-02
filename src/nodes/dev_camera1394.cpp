@@ -48,11 +48,11 @@
 
 #include <stdint.h>
 
-#include "yuv.h"
+#include "camera1394/yuv.h"
 #include <sensor_msgs/image_encodings.h>
-#include "dev_camera1394.h"
-#include "features.h"
-#include "modes.h"
+#include "camera1394/dev_camera1394.h"
+#include "camera1394/features.h"
+#include "camera1394/modes.h"
 
 #define NUM_DMA_BUFFERS 4
 

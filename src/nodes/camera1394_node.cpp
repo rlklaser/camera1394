@@ -35,7 +35,7 @@
 *********************************************************************/
 
 #include <signal.h>
-#include "driver1394.h"
+#include "camera1394/camera1394.h"
 
 /** @file
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   ros::NodeHandle priv_nh("~");
   ros::NodeHandle camera_nh("camera");
   signal(SIGSEGV, &sigsegv_handler);
-  camera1394_driver::Camera1394Driver dvr(priv_nh, camera_nh);
+  camera1394_driver::Camera1394 dvr(priv_nh, camera_nh);
 
   dvr.setup();
   while (node.ok())

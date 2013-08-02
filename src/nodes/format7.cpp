@@ -41,10 +41,10 @@
  */
 
 #include <stdint.h>
-#include "yuv.h"
+#include "camera1394/yuv.h"
 #include <sensor_msgs/image_encodings.h>
-#include "format7.h"
-#include "modes.h"
+#include "camera1394/format7.h"
+#include "camera1394/modes.h"
 
 
 /** Start the 1394 device in Format7 mode

@@ -35,7 +35,7 @@
 *********************************************************************/
 
 #include <cmath>
-#include "features.h"
+#include "camera1394/features.h"
 
 /** @file
 

@@ -33,7 +33,10 @@ find_library(DC1394_LIBRARY
 # auto-generate dynamic reconfiguration GUI before catkin_package()
 generate_dynamic_reconfigure_options(cfg/Camera1394.cfg)
 
-catkin_package(CATKIN_DEPENDS
+catkin_package(
+               INCLUDE_DIRS 
+                 include
+               CATKIN_DEPENDS
                  camera_info_manager
                  diagnostic_updater
                  dynamic_reconfigure
@@ -42,7 +45,11 @@ catkin_package(CATKIN_DEPENDS
                  roscpp
                  tf
                DEPENDS Boost DC1394_LIBRARY
-               LIBRARIES src/nodes/camera1394_nodelet)
+               LIBRARIES 
+                 src/nodes/camera1394_nodelet
+                 src/nodes/camera1394)
+
+include_directories(include)
 
 # build package sources
 add_subdirectory(src/nodes)
@@ -51,6 +58,11 @@ add_subdirectory(src/nodes)
 install(FILES camera1394_nodelet.xml
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        FILES_MATCHING PATTERN "*.h"
+        )
+        
 # driver unit tests
 if (CATKIN_ENABLE_TESTING)
   message("-- ${PROJECT_NAME} unit testing enabled")

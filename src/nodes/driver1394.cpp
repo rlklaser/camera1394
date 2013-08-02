@@ -39,9 +39,9 @@
 #include <driver_base/SensorLevels.h>
 #include <tf/transform_listener.h>
 
-#include "driver1394.h"
+#include "camera1394/driver1394.h"
 #include "camera1394/Camera1394Config.h"
-#include "features.h"
+#include "camera1394/features.h"
 
 /** @file
 
@@ -79,10 +79,6 @@ namespace camera1394_driver
     retries_(0),
     dev_(new camera1394::Camera1394()),
     srv_(priv_nh),
-    cinfo_(new camera_info_manager::CameraInfoManager(camera_nh_)),
-    calibration_matches_(true),
-    it_(new image_transport::ImageTransport(camera_nh_)),
-    image_pub_(it_->advertiseCamera("image_raw", 1)),
     diagnostics_(),
     topic_diagnostics_min_freq_(0.),
     topic_diagnostics_max_freq_(1000.),
@@ -133,21 +129,14 @@ namespace camera1394_driver
             if (camera_name_ != dev_->device_id_)
               {
                 camera_name_ = dev_->device_id_;
-                if (!cinfo_->setCameraName(camera_name_))
-                  {
-                    // GUID is 16 hex digits, which should be valid.
-                    // If not, use it for log messages anyway.
-                    ROS_WARN_STREAM("[" << camera_name_
-                                    << "] name not valid"
-                                    << " for camera_info_manger");
-                  }
+                newCameraName();
               }
             ROS_INFO_STREAM("[" << camera_name_ << "] opened: "
                             << newconfig.video_mode << ", "
                             << newconfig.frame_rate << " fps, "
                             << newconfig.iso_speed << " Mb/s");
             state_ = Driver::OPENED;
-            calibration_matches_ = true;
+            //calibration_matches_ = true;
             newconfig.guid = camera_name_; // update configuration parameter
             retries_ = 0;
             success = true;
@@ -216,58 +205,6 @@ namespace camera1394_driver
       }
   }
 
-  /** Publish camera stream topics
-   *
-   *  @param image points to latest camera frame
-   */
-  void Camera1394Driver::publish(const sensor_msgs::ImagePtr &image)
-  {
-    image->header.frame_id = config_.frame_id;
-
-    // get current CameraInfo data
-    sensor_msgs::CameraInfoPtr
-      ci(new sensor_msgs::CameraInfo(cinfo_->getCameraInfo()));
-
-    // check whether CameraInfo matches current video mode
-    if (!dev_->checkCameraInfo(*image, *ci))
-      {
-        // image size does not match: publish a matching uncalibrated
-        // CameraInfo instead
-        if (calibration_matches_)
-          {
-            // warn user once
-            calibration_matches_ = false;
-            ROS_WARN_STREAM("[" << camera_name_
-                            << "] calibration does not match video mode "
-                            << "(publishing uncalibrated data)");
-          }
-        ci.reset(new sensor_msgs::CameraInfo());
-        ci->height = image->height;
-        ci->width = image->width;
-      }
-    else if (!calibration_matches_)
-      {
-        // calibration OK now
-        calibration_matches_ = true;
-        ROS_WARN_STREAM("[" << camera_name_
-                        << "] calibration matches video mode now");
-      }
-
-    // fill in operational parameters
-    dev_->setOperationalParameters(*ci);
-
-    ci->header.frame_id = config_.frame_id;
-    ci->header.stamp = image->header.stamp;
-
-    // Publish via image_transport
-    image_pub_.publish(image, ci);
-
-    // Notify diagnostics that a message has been published. That will
-    // generate a warning if messages are not published at nearly the
-    // configured frame_rate.
-    topic_diagnostics_.tick(image->header.stamp);
-  }
-
   /** Read camera data.
    *
    * @param image points to camera Image message
@@ -330,12 +267,7 @@ namespace camera1394_driver
 
     if (config_.camera_info_url != newconfig.camera_info_url)
       {
-        // set the new URL and load CameraInfo (if any) from it
-        if (cinfo_->validateURL(newconfig.camera_info_url))
-          {
-            cinfo_->loadCameraInfo(newconfig.camera_info_url);
-          }
-        else
+        if (!validateConfig(newconfig))
           {
             // new URL not valid, use the old one
             newconfig.camera_info_url = config_.camera_info_url;

@@ -42,7 +42,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <nodelet/nodelet.h>
 
-#include "driver1394.h"
+#include "camera1394/camera1394.h"
 
 /** @file
 
@@ -88,7 +88,7 @@ void Camera1394Nodelet::onInit()
   ros::NodeHandle priv_nh(getPrivateNodeHandle());
   ros::NodeHandle node(getNodeHandle());
   ros::NodeHandle camera_nh(node, "camera");
-  dvr_.reset(new camera1394_driver::Camera1394Driver(priv_nh, camera_nh));
+  dvr_.reset(new camera1394_driver::Camera1394(priv_nh, camera_nh));
   dvr_->setup();
 
   // spawn device thread

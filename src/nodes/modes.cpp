@@ -35,7 +35,7 @@
 *********************************************************************/
 
 #include <ros/ros.h>
-#include "modes.h"
+#include "camera1394/modes.h"
 
 /** @file
 
