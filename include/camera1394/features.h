@@ -40,7 +40,7 @@
 
 #include <dc1394/dc1394.h>
 
-#include "camera1394/Camera1394Config.h"
+#include <camera1394/Camera1394Config.h>
 typedef camera1394::Camera1394Config Config;
 
 /** @file

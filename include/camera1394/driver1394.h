@@ -38,16 +38,13 @@
 #include <boost/thread/mutex.hpp>
 
 #include <ros/ros.h>
-#include <camera_info_manager/camera_info_manager.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 #include <driver_base/driver.h>
 #include <dynamic_reconfigure/server.h>
-#include <image_transport/image_transport.h>
-#include <sensor_msgs/CameraInfo.h>
 
-#include "dev_camera1394.h"
-#include "camera1394/Camera1394Config.h"
+#include <camera1394/dev_camera1394.h>
+#include <camera1394/Camera1394Config.h>
 typedef camera1394::Camera1394Config Config;
 
 /** @file
@@ -66,7 +63,7 @@ public:
   // public methods
   Camera1394Driver(ros::NodeHandle priv_nh,
                    ros::NodeHandle camera_nh);
-  ~Camera1394Driver();
+  virtual ~Camera1394Driver();
   void poll(void);
   void setup(void);
   void shutdown(void);
@@ -76,9 +73,15 @@ private:
   // private methods
   void closeCamera();
   bool openCamera(Config &newconfig);
-  void publish(const sensor_msgs::ImagePtr &image);
   bool read(sensor_msgs::ImagePtr &image);
   void reconfig(camera1394::Camera1394Config &newconfig, uint32_t level);
+
+protected:
+
+  //protected methods
+  virtual void publish(const sensor_msgs::ImagePtr &image) = 0;
+  virtual inline void newCameraName() {};
+  virtual bool validateConfig(Config &newconfig) = 0;
 
   /** Non-recursive mutex for serializing callbacks with device polling. */
   boost::mutex mutex_;
@@ -98,14 +101,6 @@ private:
   /** dynamic parameter configuration */
   camera1394::Camera1394Config config_;
   dynamic_reconfigure::Server<camera1394::Camera1394Config> srv_;
-
-  /** camera calibration information */
-  boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;
-  bool calibration_matches_;            // CameraInfo matches video mode
-
-  /** image transport interfaces */
-  boost::shared_ptr<image_transport::ImageTransport> it_;
-  image_transport::CameraPublisher image_pub_;
 
   /** diagnostics updater */
   diagnostic_updater::Updater diagnostics_;
